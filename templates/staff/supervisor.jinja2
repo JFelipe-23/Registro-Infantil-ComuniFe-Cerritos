@@ -1,0 +1,101 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Panel Admin - {{ community_name | default('Comunife') }}{% endblock %}
+
+{% block extra_css %}
+    /* Cabecera de Administrador */
+    .admin-header { text-align: center; margin-bottom: 40px; width: 100%; }
+    .admin-logo {
+        width: 80px; height: 80px;
+        border: 1.5px solid #fff; border-radius: 50%;
+        margin: 0 auto 15px;
+        display: flex; justify-content: center; align-items: center;
+    }
+    .admin-title { font-size: 2rem; font-weight: 800; margin-bottom: 5px; letter-spacing: 2px; }
+    .admin-subtitle { color: #666; font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; }
+
+    /* Sección Gestión de Salones */
+    .section-header {
+        width: 100%; display: flex; justify-content: space-between;
+        align-items: center; margin-bottom: 20px;
+    }
+    .label-management { color: #555; font-size: 0.75rem; letter-spacing: 2px; font-weight: bold; }
+    .btn-add-circle {
+        width: 32px; height: 32px; background: #222; color: #fff; 
+        border: none; border-radius: 50%; display: flex; 
+        justify-content: center; align-items: center;
+        text-decoration: none; font-weight: bold; transition: 0.3s;
+    }
+    .btn-add-circle:hover { background: #333; transform: scale(1.1); }
+
+    /* Tarjetas de Salones (Estilo Monocromático) */
+    .room-card {
+        width: 100%; background: #111; border: 1px solid #222;
+        border-radius: 25px; padding: 25px; margin-bottom: 15px;
+        display: flex; flex-direction: column;
+    }
+    .room-info { display: flex; align-items: center; position: relative; margin-bottom: 15px; }
+    .room-icon-bg {
+        width: 50px; height: 50px; background: #222; border-radius: 50%;
+        display: flex; justify-content: center; align-items: center; margin-right: 15px;
+    }
+    .room-name { font-size: 1.3rem; font-weight: bold; margin: 0; flex-grow: 1; }
+    .room-options { color: #444; font-size: 1.2rem; cursor: pointer; }
+
+    /* Botón de Acción en Tarjeta */
+    .room-actions { display: flex; justify-content: flex-end; }
+    .btn-delete-room {
+        padding: 10px 25px; background: transparent; color: #fff;
+        border: 1px solid #333; border-radius: 12px; font-weight: bold;
+        text-decoration: none; font-size: 0.9rem; transition: 0.3s;
+        display: flex; align-items: center;
+    }
+    .btn-delete-room:hover { background: #fff; color: #000; border-color: #fff; }
+
+    /* Botones Inferiores de Configuración */
+    .admin-footer-actions { width: 100%; margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
+    .btn-config {
+        width: 100%; padding: 15px; border-radius: 15px; 
+        text-align: center; text-decoration: none; font-weight: bold;
+        transition: 0.3s; font-size: 0.9rem;
+    }
+    .btn-password { background: transparent; color: #fff; border: 1px solid #111; }
+    .btn-exit { background: #0a0a0a; color: #fff; border: 1px solid #222; display: flex; justify-content: center; align-items: center; }
+    .btn-exit:hover { background: #111; border-color: #444; }
+
+    .icon-margin { margin-right: 10px; }
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div class="admin-logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" style="width: 50%;" alt="Logo">
+    </div>
+    <h1 class="admin-title">SUPERVISOR</h1>
+    <p class="admin-subtitle">📞 MODO SUPERVISOR</p>
+    <p style="color: #777; font-size: 0.9rem; margin-top: 8px;">Responsable: {{ responsable }}</p>
+</div>
+
+<div class="section-header">
+    <span class="label-management">GESTIÓN DE SALONES</span>
+</div>
+
+{% for supervisor in supervisores %}
+<div class="room-card">
+    <div class="room-info">
+        <div class="room-icon-bg">👤</div>
+        <h3 class="room-name">{{ supervisor.nombre }}</h3>
+        <p>Responsable: {{supervisor.encargado}}</p>
+    </div>
+</div>
+{% endfor %}
+
+<div class="admin-footer-actions">
+    <a href="/staff/{{ salon_id }}/responsable" class="btn-config btn-exit">
+        Camiar Responsable
+    </a>
+    <a href="/logout" class="btn-config btn-exit">
+        <span class="icon-margin">↪</span> Salir
+    </a>
+</div>
+{% endblock %}

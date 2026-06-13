@@ -1,0 +1,24 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Inicio - Selección de Perfil{% endblock %}
+
+{% block extra_css %}
+    .hero-section { text-align: center; margin: 60px 0; }
+    .main-title { font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 900; letter-spacing: 2px; }
+    .btn-group { width: 100%; display: flex; flex-direction: column; gap: 15px; }
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="img-fluid" style="width: clamp(100px, 15vw, 180px); height: clamp(100px, 15vw, 180px);">
+    <h1 class="main-title">IGLESIA INFANTIL</h1>
+    <p style="color: #666;">Bienvenido a nuestra comunidad</p>
+</div>
+
+<div class="btn-group">
+    <p style="text-align: center; color: #444; letter-spacing: 3px; font-size: 0.8rem; margin-bottom: 10px;">SELECCIONA TU PERFIL</p>
+    <a href="{{ url_for('staff_logIn', perfil='staff') }}" class="btn-custom btn-white">👤 STAFF</a>
+    <a href="{{ url_for('salones') }}" class="btn-custom btn-outline">👪 REGISTRO</a>
+    <a href="https://www.google.com/" class="btn-custom btn-white">🥇 PRIMERA VES</a>
+</div>
+{% endblock %}

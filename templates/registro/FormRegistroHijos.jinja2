@@ -1,0 +1,113 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Bienvenido{% endblock %}
+
+{% block extra_css %}
+    .nav-top { width: 100%; display: flex; justify-content: space-between; margin-bottom: 40px; }
+    .header-text { margin-bottom: 40px; width: 100%; }
+    .input-box {
+        width: 100%; background: #111; border: 1px solid #333;
+        border-radius: 15px; padding: 20px; display: flex; align-items: center;
+        margin-top: 10px;
+    }
+    .input-box input {
+        background: transparent; border: none; color: #fff;
+        width: 100%; padding-left: 15px; font-size: 1.1rem; outline: none;
+    }
+    .divider-orb { margin: 30px 0; text-align: center; color: #333; position: relative; }
+    .divider-orb::before { content: ""; position: absolute; top: 50%; left: 0; width: 45%; border-bottom: 1px solid #222; }
+    .divider-orb::after { content: ""; position: absolute; top: 50%; right: 0; width: 45%; border-bottom: 1px solid #222; }
+{% endblock %}
+
+{% block content %}
+<div class="nav-top">
+    <a href="/salones/" style="color: #888; text-decoration: none;">❮ Volver</a>
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="img-fluid" style="width: 35px; height: 35px;">
+</div>
+
+<div class="header-text">
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Bienvenido</h1>
+    <p style="color: #777;">Ingresa los datos del hijo</p>
+</div>
+
+<form style="width: 100%;" method="POST" novalidate>
+    {{ form.hidden_tag() }}
+    <label style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">NOMBRE DEL HIJO</label>
+    <div class="input-box">
+        <span>👤</span>
+        {% if form.nombre_hijo.errors %}
+            {{ form.nombre_hijo(placeholder='Ingresa el nombre del hijo', style='border: 1px solid #d32f2f;') }}
+        {% else %}
+            {{ form.nombre_hijo(placeholder='Ingresa el nombre del hijo') }}
+        {% endif %}
+    </div>
+    {% if form.nombre_hijo.errors %}
+        <ul style="color: #d32f2f; font-size: 0.8rem; margin-top: 5px;">
+        {% for error in form.nombre_hijo.errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    <label style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">EDAD</label>
+    <div class="input-box">
+        <span>🎂</span>
+        {% if form.edad_hijo.errors %}
+            {{ form.edad_hijo(placeholder='Ingresa la edad del hijo', style='border: 1px solid #d32f2f;') }}
+        {% else %}
+            {{ form.edad_hijo(placeholder='Ingresa la edad del hijo') }}
+        {% endif %}
+    </div>
+    {% if form.edad_hijo.errors %}
+        <ul style="color: #d32f2f; font-size: 0.8rem; margin-top: 5px;">
+        {% for error in form.edad_hijo.errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+
+    <label style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">NOMBRE COMPLETO DEL ACUDIENTE</label>
+    <div class="input-box">
+        <span>👤</span>
+        {% if form.nombre_acudiente.errors %}
+            {{ form.nombre_acudiente(placeholder='Ingresa el nombre completo del acudiente', style='border: 1px solid #d32f2f;') }}
+        {% else %}
+            {{ form.nombre_acudiente(placeholder='Ingresa el nombre completo del acudiente') }}
+        {% endif %}
+    </div>
+    {% if form.nombre_acudiente.errors %}
+        <ul style="color: #d32f2f; font-size: 0.8rem; margin-top: 5px;">
+        {% for error in form.nombre_acudiente.errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %} 
+
+    <label style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">CELULAR DEL ACUDIENTE</label>
+    <div class="input-box">
+        <span>📱</span>
+        {% if form.celular_acudiente.errors %}
+            {{ form.celular_acudiente(placeholder='Ingresa el celular del acudiente', style='border: 1px solid #d32f2f;') }}
+        {% else %}
+            {{ form.celular_acudiente(placeholder='Ingresa el celular del acudiente') }}
+        {% endif %}
+    </div>
+    {% if form.celular_acudiente.errors %}
+        <ul style="color: #d32f2f; font-size: 0.8rem; margin-top: 5px;">
+        {% for error in form.celular_acudiente.errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    
+    {{ form.submit(class='btn-custom btn-white', style='width: 100%; margin-top: 30px; border: none;') }}
+    
+</form>
+
+<div style="text-align: center; margin-top: 50px;">
+    <a href="/" style="text-decoration: none; color: #fff;">
+        <div style="width: 50px; height: 50px; border: 1px solid #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">🏠</div>
+        <span style="color: #555; text-align: center; margin-top: 15px; font-size: 0.9rem;">INICIO</span>
+    </a>
+</div>
+{% endblock %}

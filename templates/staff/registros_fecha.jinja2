@@ -1,0 +1,136 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Registro de Fechas{% endblock %}
+
+{% block extra_css %}
+    .nav-top { width: 100%; display: flex; justify-content: space-between; margin-bottom: 40px; }
+    .header-text { margin-bottom: 40px; width: 100%; }
+    .input-box {
+        width: 100%; background: #111; border: 1px solid #333;
+        border-radius: 15px; padding: 20px; display: flex; align-items: center;
+        margin-top: 10px;
+    }
+    .input-box select, .input-box input {
+        background: transparent; border: none; color: #fff;
+        width: 100%; padding-left: 15px; font-size: 1.1rem; outline: none;
+    }
+    /* Estilo para que el select se integre limpiamente con tu diseño oscuro */
+    .input-box select option { background: #111; color: #fff; }
+    .divider-orb { margin: 30px 0; text-align: center; color: #333; position: relative; }
+    .divider-orb::before { content: ""; position: absolute; top: 50%; left: 0; width: 45%; border-bottom: 1px solid #222; }
+    .divider-orb::after { content: ""; position: absolute; top: 50%; right: 0; width: 45%; border-bottom: 1px solid #222; }
+{% endblock %}
+
+{% block content %}
+<div class="nav-top">
+    <a href="/staff-admin/home" style="color: #888; text-decoration: none;">❮ Volver</a>
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="img-fluid" style="width: 35px; height: 35px;">
+</div>
+
+<div class="header-text">
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Ingresar Fecha</h1>
+</div>
+
+<div class="input-box" style="margin-bottom: 30px;">
+    <span>🔍</span>
+    <select id="option-select">
+        <option value="form-anio">Filtrar por Año</option>
+        <option value="form-mes">Filtrar por Mes</option>
+        <option value="form-dia">Filtrar por Día Exacto</option>
+    </select>
+</div>
+
+<div id="form-anio" class="form-container">
+    <div class="input-box">
+        <span>🗓️</span>
+        <input type="number" id="input-anio-solo" placeholder="YYYY" value="2026">
+    </div>
+    <button type="button" onclick="descargarAnio()" class="btn-custom btn-white" style="width: 100%; margin-top: 30px; border: none;">Descargar Registro Anual</button>
+</div>
+
+<div id="form-mes" class="form-container" style="display: none;">
+    <div class="input-box">
+        <span>🗓️</span>
+        <input type="number" id="input-mes-anio" placeholder="YYYY" value="2026">
+    </div>
+    <div class="input-box">
+        <span>📅</span>
+        <input type="number" id="input-mes-mes" placeholder="MM" min="1" max="12">
+    </div>
+    <button type="button" onclick="descargarMes()" class="btn-custom btn-white" style="width: 100%; margin-top: 30px; border: none;">Descargar Registro Mensual</button>
+</div>
+
+<div id="form-dia" class="form-container" style="display: none;">
+    <div class="input-box">
+        <span>🗓️</span>
+        <input type="number" id="input-dia-anio" placeholder="YYYY" value="2026">
+    </div>
+    <div class="input-box">
+        <span>📅</span>
+        <input type="number" id="input-dia-mes" placeholder="MM" min="1" max="12">
+    </div>
+    <div class="input-box">
+        <span>📌</span>
+        <input type="number" id="input-dia-dia" placeholder="DD" min="1" max="31">
+    </div>  
+    <button type="button" onclick="descargarDia()" class="btn-custom btn-white" style="width: 100%; margin-top: 30px; border: none;">Descargar Registro Diario</button>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Capturar el selector y escuchar el evento de cambio
+    const selector = document.getElementById('option-select');
+    
+    if (selector) {
+        selector.addEventListener('change', function() {
+            // Ocultar todos los contenedores de formularios
+            document.querySelectorAll('.form-container').forEach(function(form) {
+                form.style.display = 'none';
+            });
+            
+            // Mostrar únicamente el formulario correspondiente
+            const selectedFormId = this.value;
+            const formularioAMostrar = document.getElementById(selectedFormId);
+            if (formularioAMostrar) {
+                formularioAMostrar.style.display = 'block';
+            }
+        });
+    }
+});
+
+// ID del salón inyectado por Jinja2 desde Flask
+const salonId = "{{ salon_id }}";
+
+// 2. Funciones globales de descarga independientes para cada botón
+function descargarAnio() {
+    const anio = document.getElementById('input-anio-solo').value;
+    if (!anio) {
+        alert("Por favor ingresa un año válido.");
+        return;
+    }
+    // Apunta con el prefijo correcto de tu app
+    window.location.href = `/staff-admin/Registro/reporte/anio/${anio}/${salonId}`;
+}
+
+function descargarMes() {
+    const anio = document.getElementById('input-mes-anio').value;
+    const mes = document.getElementById('input-mes-mes').value;
+    if (!anio || !mes) {
+        alert("Por favor completa el año y el mes.");
+        return;
+    }
+    window.location.href = `/staff-admin/Registro/reporte/mes/${anio}/${mes}/${salonId}`;
+}
+
+function descargarDia() {
+    const anio = document.getElementById('input-dia-anio').value;
+    const mes = document.getElementById('input-dia-mes').value;
+    const dia = document.getElementById('input-dia-dia').value;
+    if (!anio || !mes || !dia) {
+        alert("Por favor completa todos los campos de la fecha (Año, Mes y Día).");
+        return;
+    }
+    window.location.href = `/staff-admin/Registro/reporte/dia/${anio}/${mes}/${dia}/${salonId}`;
+}
+</script>
+{% endblock %}

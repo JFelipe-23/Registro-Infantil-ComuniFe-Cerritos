@@ -1,0 +1,141 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Panel Admin - {{ community_name | default('Comunife') }}{% endblock %}
+
+{% block extra_css %}
+    /* Cabecera de Administrador */
+    .admin-header { text-align: center; margin-bottom: 40px; width: 100%; }
+    .admin-logo {
+        width: 80px; height: 80px;
+        border: 1.5px solid #fff; border-radius: 50%;
+        margin: 0 auto 15px;
+        display: flex; justify-content: center; align-items: center;
+    }
+    .admin-title { font-size: 2rem; font-weight: 800; margin-bottom: 5px; letter-spacing: 2px; }
+    .admin-subtitle { color: #666; font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; }
+
+    /* Sección Gestión de Salones */
+    .section-header {
+        width: 100%; display: flex; justify-content: space-between;
+        align-items: center; margin-bottom: 20px;
+    }
+    .label-management { color: #555; font-size: 0.75rem; letter-spacing: 2px; font-weight: bold; }
+    .btn-add-circle {
+        width: 32px; height: 32px; background: #222; color: #fff; 
+        border: none; border-radius: 50%; display: flex; 
+        justify-content: center; align-items: center;
+        text-decoration: none; font-weight: bold; transition: 0.3s;
+    }
+    .btn-add-circle:hover { background: #333; transform: scale(1.1); }
+
+    /* Tarjetas de Salones (Estilo original manteniendo bordes curvos de admin.jinja2) */
+    .room-card {
+        width: 100%; background: #111; border: 1px solid #222;
+        border-radius: 25px; padding: 25px; margin-bottom: 15px;
+        display: flex; flex-direction: column; gap: 15px;
+    }
+    
+    /* Nueva estructura interna alineada de image_d0e580.png */
+    .room-info { display: flex; align-items: center; width: 100%; }
+    .room-icon-bg {
+        width: 50px; height: 50px; background: #222; border-radius: 50%;
+        display: flex; justify-content: center; align-items: center; margin-right: 15px;
+        flex-shrink: 0;
+    }
+    .room-text-container { display: flex; flex-direction: column; }
+    .room-name { font-size: 1.3rem; font-weight: bold; margin: 0; color: #fff; }
+    .room-meta { font-size: 0.9rem; color: #888; margin: 4px 0 0 0; }
+    .room-meta span { color: #555; }
+
+    /* Distribución de botones horizontales en rejilla */
+    .room-actions { display: flex; gap: 10px; width: 100%; }
+    .btn-delete-room {
+        flex: 1; padding: 10px 15px; background: #1c1c1e; color: #fff;
+        border: 1px solid #2c2c2e; border-radius: 12px; font-weight: bold;
+        text-decoration: none; font-size: 0.9rem; transition: 0.3s;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-delete-room:hover { background: #2c2c2e; border-color: #444; }
+
+    /* Botones Inferiores de Configuración */
+    .admin-footer-actions { width: 100%; margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
+    .btn-config {
+        width: 100%; padding: 15px; border-radius: 15px; 
+        text-align: center; text-decoration: none; font-weight: bold;
+        transition: 0.3s; font-size: 0.9rem;
+    }
+    .btn-password { background: transparent; color: #fff; border: 1px solid #111; }
+    .btn-exit { background: #0a0a0a; color: #fff; border: 1px solid #222; display: flex; justify-content: center; align-items: center; }
+    .btn-exit:hover { background: #111; border-color: #444; }
+
+    .icon-margin { margin-right: 10px; }
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <div class="admin-logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" style="width: 50%;" alt="Logo">
+    </div>
+    <h1 class="admin-title">ADMIN</h1>
+    <p class="admin-subtitle">📞 MODO ADMINISTRADOR</p>
+</div>
+
+<div class="section-header">
+    <span class="label-management">GESTIÓN DE SALONES</span>
+    <a href="/add-staff" class="btn-add-circle">+</a>
+</div>
+
+{% for salon in salones %}
+<div class="room-card">
+    <div class="room-info">
+        <div class="room-icon-bg">🏢</div>
+        <div class="room-text-container">
+            <h3 class="room-name">({{ salon.id }}) {{ salon.nombre }}</h3>
+            <p class="room-meta">
+                Responsable: {{ salon.encargado }} 
+                {% if salon.id_supervisor %}
+                    <span>▪ Supervisor ID: {{ salon.id_supervisor }}</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    <div class="room-actions">
+        <a href="/staff-admin/{{ salon.id }}/supervisor" class="btn-delete-room">
+            <span>➕</span> Supervisor
+        </a>
+        <a href="/staff-admin/Registro/{{ salon.id }}" class="btn-delete-room">
+            <span>📄</span> Registro
+        </a>
+        <a href="/staff-admin/Registro/{{ salon.id }}/eliminar-salon" class="btn-delete-room">
+            <span>🗑️</span> Eliminar
+        </a>
+    </div>
+</div>
+{% endfor %}
+
+{% for supervisor in supervisores %}
+<div class="room-card">
+    <div class="room-info">
+        <div class="room-icon-bg">👤</div>
+        <div class="room-text-container">
+            <h3 class="room-name">({{ supervisor.id }}) {{ supervisor.nombre }}</h3>
+            <p class="room-meta">Responsable: {{ supervisor.encargado }}</p>
+        </div>
+    </div>
+    <div class="room-actions">
+        <a href="/staff-admin/Registro/{{ supervisor.id }}/eliminar-salon" class="btn-delete-room">
+            <span>🗑️</span> Eliminar
+        </a>
+    </div>
+</div>
+{% endfor %}
+
+<div class="admin-footer-actions">
+    <a href="/admin/{{ salon_id }}/Contrasena" class="btn-config btn-password">
+        Cambio de Contraseña
+    </a>
+    <a href="/logout" class="btn-config btn-exit">
+        <span class="icon-margin">↪</span> Salir
+    </a>
+</div>
+{% endblock %}

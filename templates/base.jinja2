@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}App{% endblock %}</title>
+    <style>
+        /* Reset y Estilos Globales Monocromáticos */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 600px; /* Ancho fluido pero legible */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-custom {
+            padding: 18px; border-radius: 50px; border: 2px solid #fff;
+            font-weight: bold; text-decoration: none; text-align: center;
+            transition: 0.3s; font-size: 1.1rem;
+        }
+        .btn-white { background: #fff; color: #000; }
+        .btn-outline { background: transparent; color: #fff; }
+        .btn-custom:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        /* Utilidades responsivas */
+        .img-fluid { max-width: 100%; height: auto; }
+        
+        {% block extra_css %}{% endblock %}
+        /* Cache bust v2 */
+    </style>
+</head>
+<body>
+    <main class="main-wrapper">
+        {% block content %}{% endblock %}
+        
+        <footer style="margin-top: auto; padding: 40px 0; text-align: center;">
+            <div style="border: 1px solid #222; padding: 10px 20px; display: inline-block;">
+                <small style="color: #444; letter-spacing: 2px;">
+                    {{ community_footer | default('COMUNIFE PEREIRA © 2026') }}
+                </small>
+            </div>
+        </footer>
+    </main>
+</body>
+</html>

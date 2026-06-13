@@ -1,0 +1,327 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Panel Staff - {{ community_name | default('Comunife') }}{% endblock %}
+{% block extra_css %}
+    * { box-sizing: border-box; }
+    
+    /* Cabecera de la Sección */
+    .students-header { 
+        text-align: center; 
+        margin-bottom: 45px; 
+        width: 100%;
+        padding-bottom: 20px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    .students-logo {
+        width: 100px; height: 100px;
+        border: 2px solid #fff; border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex; justify-content: center; align-items: center;
+        background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .students-title { 
+        font-size: 2.5rem; 
+        font-weight: 900; 
+        margin: 0; 
+        letter-spacing: 1.5px;
+        background: linear-gradient(135deg, #fff, #ccc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Tarjetas de Alumnos */
+    .student-card {
+        width: 100%; 
+        background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px; 
+        padding: 24px; 
+        margin-bottom: 18px;
+        display: flex; 
+        flex-direction: column; 
+        gap: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .student-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: left 0.5s ease;
+        pointer-events: none;
+    }
+    
+    .student-card:hover {
+        border-color: rgba(91, 106, 255, 0.2);
+        box-shadow: 0 12px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+        transform: translateY(-2px);
+    }
+    
+    .student-card:hover::before {
+        left: 100%;
+    }
+    
+    .student-info { 
+        display: flex; 
+        align-items: center; 
+        gap: 16px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .student-avatar-bg {
+        width: 60px; 
+        height: 60px; 
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        border-radius: 50%;
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        font-size: 28px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .student-details { 
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .student-details h3 { 
+        font-size: 1.4rem; 
+        font-weight: 700; 
+        margin: 0 0 6px 0;
+        color: #ffffff;
+    }
+    
+    .student-details p { 
+        color: #999; 
+        font-size: 0.9rem; 
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .age-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(100, 116, 139, 0.15);
+        border: 1px solid rgba(100, 116, 139, 0.3);
+        border-radius: 12px;
+        padding: 2px 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #cbd5e1;
+    }
+
+    /* Acciones de la tarjeta */
+    .student-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Datos de Contacto */
+    .student-contact {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .phone-info {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #aaa;
+        font-size: 0.9rem;
+    }
+
+    /* Botones de Acción */
+    .btn-action {
+        padding: 12px 20px; 
+        border-radius: 12px; 
+        text-align: center; 
+        text-decoration: none; 
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    
+    .btn-save { 
+        background: linear-gradient(135deg, #5b6aff 0%, #3b4bcf 100%);
+        color: #fff; 
+        border: none;
+        flex: 1;
+        min-width: 140px;
+        box-shadow: 0 4px 15px rgba(91, 106, 255, 0.25);
+    }
+    
+    .btn-save:hover {
+        background: linear-gradient(135deg, #3b4bcf 0%, #2534a0 100%);
+        box-shadow: 0 6px 20px rgba(91, 106, 255, 0.35);
+        transform: translateY(-1px);
+    }
+    
+    .btn-save:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(91, 106, 255, 0.15);
+    }
+
+    .btn-whatsapp-mini {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: #25D366;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-family: Arial, sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+        z-index: 9999;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-whatsapp-mini svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+    
+    .btn-whatsapp-mini:hover {
+        background-color: #1fa857;
+        box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Botones de Acción Globales */
+    .students-footer-actions { 
+        width: 100%; 
+        margin-top: 40px; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 12px;
+    }
+    
+    .btn-back-nav { 
+        background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+        color: #fff; 
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 16px;
+        border-radius: 12px;
+        display: flex; 
+        justify-content: center; 
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .btn-back-nav:hover { 
+        background: linear-gradient(135deg, #222, #1a1a1a);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        .students-title { font-size: 1.8rem; }
+        .student-details h3 { font-size: 1.1rem; }
+        .student-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .btn-save {
+            min-width: unset;
+            width: 100%;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="students-header">
+    <div class="students-logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" style="width: 50%;" alt="Logo">
+    </div>
+    <h1 class="students-title">Estudiantes | {{ nombre }}</h1>
+    <p style="color: #777; font-size: 0.9rem; margin-top: 8px;">Responsable: {{ responsable }}</p>
+</div>
+
+{% for estudiante in estudiantes %}
+<div class="student-card">
+    <div class="student-info">
+        <div class="student-avatar-bg">👤</div>
+        <div class="student-details">
+            <h3>({{ estudiante["id"] }}) {{ estudiante["nombre_hijo"] }}</h3>
+            <p>
+                <span class="age-badge">{{ estudiante["edad_hijo"] }} años</span>
+                <strong>acudiente:</strong> {{ estudiante["nombre_acudiente"] }}
+            </p>
+        </div>
+    </div>
+    
+    <div class="student-actions">
+        <form action="/staff/{{ estudiante['salon_id'] }}/salida/{{ estudiante['id'] }}" method="POST" style="display: flex; flex: 1;">
+            <button type="submit" class="btn-action btn-save">✓ Marcar Salida</button>
+        </form>
+        <a href="https://wa.me/57{{estudiante['celular_acudiente']}}?text" 
+        class="btn-whatsapp-mini" 
+        target="_blank" 
+        rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="#ffffff" width="18" height="18">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.15-.197.297-.765.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.416.074-.634.298-.218.224-.833.815-.833 1.986 0 1.17 1.026 2.296 1.169 2.482.143.186 2.029 3.256 4.907 4.564.686.297 1.22.474 1.637.608.687.219 1.312.188 1.805.114.55-.084 1.756-.719 2.006-1.413.25-.694.25-1.288.174-1.413-.075-.124-.273-.198-.57-.347m-3.443 5.424h-.01c-1.765 0-3.498-.475-5.006-1.37l-.358-.212-3.71.974.99-3.612-.231-.37c-1.026-1.638-1.568-3.535-1.569-5.485 0-5.747 4.685-10.43 10.434-10.43 2.788 1.099 5.438 2.872 7.417 4.852 1.98 1.978 3.75 4.629 4.85 7.417-.001 5.748-4.687 10.431-10.433 10.431m4.846-15.596c-1.89-1.89-4.405-2.93-7.075-2.93-5.525 0-10.022 4.496-10.023 10.023 0 1.765.46 3.493 1.336 5.012l.099.175-1.056 3.856 3.951-1.037.177.096c1.491.832 3.172 1.272 4.891 1.272h.008c5.524 0 10.021-4.496 10.022-10.43-.001-2.67-1.042-5.185-2.93-7.074Z"/>
+            </svg>
+            Chat
+        </a>
+    </div>
+    
+    <div class="student-contact">
+        <span class="phone-info">📞 {{estudiante['celular_acudiente']}}</span>
+    </div>
+</div>
+{% endfor %}
+
+<div class="students-footer-actions">
+    <a href="/staff/{{ salon_id }}/responsable" class="btn-action btn-back-nav">
+        Camiar Responsable
+    </a>
+</div>
+
+<div class="students-footer-actions">
+    <a href="/logout" class="btn-action btn-back-nav">
+        <span class="icon-margin">↪</span> SALIR
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.jinja2" %}
+
+{% block title %}Scarapela{% endblock %}
+
+{% block extra_css %}
+    .nav-top { width: 100%; display: flex; justify-content: space-between; margin-bottom: 40px; }
+    .header-text { margin-bottom: 40px; width: 100%; }
+    .input-box {
+        width: 100%; background: #111; border: 1px solid #333;
+        border-radius: 15px; padding: 20px; display: flex; align-items: center;
+        margin-top: 10px;
+    }
+    .input-box input {
+        background: transparent; border: none; color: #fff;
+        width: 100%; padding-left: 15px; font-size: 1.1rem; outline: none;
+    }
+    .divider-orb { margin: 30px 0; text-align: center; color: #333; position: relative; }
+    .divider-orb::before { content: ""; position: absolute; top: 50%; left: 0; width: 45%; border-bottom: 1px solid #222; }
+    .divider-orb::after { content: ""; position: absolute; top: 50%; right: 0; width: 45%; border-bottom: 1px solid #222; }
+{% endblock %}
+
+{% block content %}
+<div class="nav-top">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" class="img-fluid" style="width: 35px; height: 35px;">
+</div>
+
+<div class="header-text">
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Asignación Exitosa</h1>
+</div>
+
+<div style="background: #222; border: 1px solid #333; border-radius: 15px; padding: 30px; text-align: center;">
+    <p style="font-size: 1.2rem; color: #aaa; margin-bottom: 20px;">¡El niño ha sido asignado correctamente a su salón!</p>
+    <p style="font-size: 1.1rem; color: #aaa;">Código de Registro: <strong>{{ codigo_registro }}</strong></p>
+    <p style="font-size: 1.1rem; color: #aaa;">Nombre: {{ nombre_hijo }}</p>
+    <p style="font-size: 1.1rem; color: #aaa;">Edad: {{ edad_hijo }} años</p>
+    <p style="font-size: 1.1rem; color: #aaa;">Salón Asignado: {{ nombre_salon }}</p>
+</div>
+
+<p> Haga captura de pantalla de esta página para mostrarla al STAFF encargado. </p>
+
+<div style="text-align: center; margin-top: 50px;">
+    <a href="/salon/{{ salon_id }}" style="text-decoration: none; color: #fff;">
+        <div style="width: 50px; height: 50px; border: 1px solid #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">🏠</div>
+        <span style="color: #555; text-align: center; margin-top: 15px; font-size: 0.9rem;">INICIO</span>
+    </a>
+</div>
+
+{% endblock %}
