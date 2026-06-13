@@ -1,0 +1,2 @@
+id,nombre,usuario,contrasena_hash,encargado,es_admin,es_supervisor,id_supervisor
+1,Admin,Admin,scrypt:32768:8:1$IigOE99Bda9iCCX4$860c0d934c6b59aa669a10ff4f1acce9c3ac84ceee194ae40d7644ebef5eee45b5cdb379eee523b4a30111ca11263e4648ddaa6674729247bff2a8168fd8a47c,,True,False,
