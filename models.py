@@ -15,20 +15,36 @@ DATA_DIR = "DB"
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
-CSV_SALON = os.path.join(DATA_DIR, "Salones.csv")
-CSV_REGISTRO = os.path.join(DATA_DIR, f"Registro-{datetime.now().strftime('%Y')}.csv")
+CSV_SALON = str(os.path.join(DATA_DIR, "Salones.csv"))
+CSV_REGISTRO = str(os.path.join(DATA_DIR, f"Registro-{datetime.now().strftime('%Y')}.csv"))
 
 # Inicializar archivos con sus cabeceras correspondientes
 def init_csv_files():
+    global CSV_REGISTRO
+    global CSV_SALON
+    
     if not os.path.exists(CSV_SALON):
         with open(CSV_SALON, mode='w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(['id', 'nombre', 'usuario', 'contrasena_hash', 'encargado', 'es_admin', 'es_supervisor', 'id_supervisor'])
+            print("Se ha creado el archivo de salones")
+            print(f"{CSV_SALON}")
             
     if not os.path.exists(CSV_REGISTRO):
         with open(CSV_REGISTRO, mode='w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(['id', 'nombre_hijo', 'edad_hijo', 'nombre_acudiente', 'celular_acudiente', 'salon_id', 'nombre_staff', 'supervisor', 'nombre_salon', 'fecha_registro', 'entrada', 'salida'])
+            print("Se ha creado el archivo de registros")
+            print(f"{CSV_REGISTRO}")
+    else:
+        # Si ya existe, validamos si el año cambió (reutilizando tu lógica)
+        anio_actual = datetime.now().strftime('%Y')
+        if anio_actual == CSV_REGISTRO.split('-')[-1].split('.')[0]:
+            CSV_REGISTRO = os.path.join(DATA_DIR, f"Registro-{anio_actual}.csv")
+            print("Se ha verificado el archivo de registros existente")
+            print(f"{CSV_REGISTRO}")
+        else:
+            print("Ya existe un archivo de registros para otro periodo")
 
 init_csv_files()
 

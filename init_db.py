@@ -2,7 +2,7 @@ import os
 import csv
 from werkzeug.security import generate_password_hash
 # Importamos las rutas de archivos y funciones necesarias desde el nuevo models
-from models import CSV_SALON, init_csv_files, SalonCSV
+from models import CSV_SALON, CSV_REGISTRO, init_csv_files, SalonCSV
 
 # Aseguramos que el directorio y los archivos base existan antes de insertar
 init_csv_files()
