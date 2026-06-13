@@ -18,9 +18,6 @@ if not os.path.exists(DATA_DIR):
 CSV_SALON = os.path.join(DATA_DIR, "Salones.csv")
 CSV_REGISTRO = os.path.join(DATA_DIR, f"Registro-{datetime.now().strftime('%Y')}.csv")
 
-if datetime.now().strftime('%Y') == CSV_REGISTRO.split('-')[-1].split('.')[0]:
-    CSV_REGISTRO = os.path.join(DATA_DIR, f"Registro-{datetime.now().strftime('%Y')}.csv")
-
 # Inicializar archivos con sus cabeceras correspondientes
 def init_csv_files():
     if not os.path.exists(CSV_SALON):
