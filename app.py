@@ -198,7 +198,7 @@ def eliminar_salon(salon_id):
         SalonCSV.delete(salon_id)
     except:
         flash("Error al eliminar el hijo. Intenta de nuevo", "error")
-    return render_template("staff/admin.jinja2", salones=SalonCSV.get_all_non_admin(), supervisores=SalonCSV.get_all_supervisores())
+    return render_template("staff/admin.jinja2", salones=SalonCSV.get_all_salones(), supervisores=SalonCSV.get_all_supervisores())
 
 @app.route("/staff/Registro", methods=["GET", "POST"])
 def staff_registro():

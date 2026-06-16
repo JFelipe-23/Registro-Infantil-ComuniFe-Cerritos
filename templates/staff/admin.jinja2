@@ -92,7 +92,7 @@
         <div class="room-text-container">
             <h3 class="room-name">({{ salon.id }}) {{ salon.nombre }}</h3>
             <p class="room-meta">
-                Responsable: {{ salon.encargado }} 
+                Profesor encargado: {{ salon.encargado }} 
                 {% if salon.id_supervisor %}
                     <span>▪ Supervisor ID: {{ salon.id_supervisor }}</span>
                 {% endif %}
@@ -112,6 +112,10 @@
     </div>
 </div>
 {% endfor %}
+
+<div class="section-header">
+    <span class="label-management">GESTIÓN DE SUPERVISORES</span>
+</div>
 
 {% for supervisor in supervisores %}
 <div class="room-card">

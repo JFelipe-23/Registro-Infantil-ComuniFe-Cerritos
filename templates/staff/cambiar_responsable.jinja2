@@ -1,6 +1,6 @@
 {% extends "base.jinja2" %}
 
-{% block title %}Asignación de Salon{% endblock %}
+{% block title %}Actualizar Nombre{% endblock %}
 
 {% block extra_css %}
     .nav-top { width: 100%; display: flex; justify-content: space-between; margin-bottom: 40px; }
@@ -25,17 +25,17 @@
 </div>
 
 <div class="header-text">
-    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Actualizar Responsable</h1>
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Actualizar Nombre</h1>
 </div>
 
 <form style="width: 100%;" method="POST">
-    <label style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">RESPONSABLE</label>
+    <label style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">NOMBRE</label>
     <div class="input-box">
         <span>👤</span>
         {% if form.nuevo_encargado.errors %}
-            {{ form.nuevo_encargado(placeholder='Ingresa nombre del responsable', style='border: 1px solid #d32f2f;') }}
+            {{ form.nuevo_encargado(placeholder='Ingresa nombre', style='border: 1px solid #d32f2f;') }}
         {% else %}
-            {{ form.nuevo_encargado(placeholder='Ingresa nombre del responsable') }}
+            {{ form.nuevo_encargado(placeholder='Ingresa nombre') }}
         {% endif %}
     </div>
     {% if form.nuevo_encargado.errors %}
@@ -46,7 +46,7 @@
         </ul>
     {% endif %}
 
-    <button type="submit" class="btn-custom btn-white" style="width: 100%; margin-top: 30px; border: none;">Actualizar Responsable</button>
+    <button type="submit" class="btn-custom btn-white" style="width: 100%; margin-top: 30px; border: none;">Actualizar</button>
 </form>
 
 {% endblock %}

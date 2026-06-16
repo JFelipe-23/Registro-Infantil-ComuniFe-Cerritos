@@ -1,1 +1,1 @@
-id,nombre_hijo,edad_hijo,nombre_acudiente,celular_acudiente,salon_id,nombre_staff,supervisor,nombre_salon,fecha_registro,entrada,salida
+id,nombre_hijo,edad_hijo,nombre_acudiente,celular_acudiente,salon_id,nombre_staff,encargado,nombre_salon,fecha_registro,entrada,salida

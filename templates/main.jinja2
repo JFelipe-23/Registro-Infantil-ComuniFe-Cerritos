@@ -17,8 +17,8 @@
 
 <div class="btn-group">
     <p style="text-align: center; color: #444; letter-spacing: 3px; font-size: 0.8rem; margin-bottom: 10px;">SELECCIONA TU PERFIL</p>
-    <a href="{{ url_for('staff_logIn', perfil='staff') }}" class="btn-custom btn-white">👤 STAFF</a>
+    <a href="{{ url_for('staff_logIn') }}" class="btn-custom btn-white">👤 STAFF</a>
     <a href="{{ url_for('salones') }}" class="btn-custom btn-outline">👪 REGISTRO</a>
-    <a href="https://www.google.com/" class="btn-custom btn-white">🥇 PRIMERA VES</a>
+    <a href="{{ url_for('main') }}" class="btn-custom btn-white">🥇 PRIMERA VES</a>
 </div>
 {% endblock %}
