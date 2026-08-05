@@ -10,7 +10,7 @@ app.config['SECRET_KEY'] = 'ba2e18ce248bab7ce9425333f0420b57a5f07dfef342e1876d30
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:Felipe1323@localhost:5432/registro')
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://registros_posgres_comunife_user:0s6j5qZeREMrvUHPsKEpYJNdgHHQmUqx@dpg-d9pnts53erlc7398apl0-a/registros_posgres_comunife')
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
