@@ -1,8 +1,10 @@
-Flask
+﻿Flask
 Flask-Login
 Flask-WTF
 WTForms
 Werkzeug
+Flask-SQLAlchemy
+psycopg2-binary
 pandas
 openpyxl
 gunicorn

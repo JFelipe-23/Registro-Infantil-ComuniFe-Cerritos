@@ -2,8 +2,7 @@ from flask import abort, render_template, redirect, url_for, request, flash, sen
 from flask_login import LoginManager, current_user, login_user, logout_user
 from werkzeug.security import generate_password_hash
 from datetime import timedelta
-# Importamos las clases CSV simuladas
-from models import RegistroCSV, app, SalonCSV, SalonUser, CSV_REGISTRO
+from models import RegistroCSV, app, SalonCSV, SalonUser
 from forms import SalonLoginForm, SalonForm, RegistroForm, CambiarResponsableForm, CambiarContraseñaForm, FechaForm, AñoForm, MesForm
 
 import io
@@ -46,10 +45,10 @@ def salon_home(salon_id):
     salon = SalonCSV.get(salon_id)
     if not salon:
         return redirect(url_for("salones"))
-    if salon.es_admin == 'True':
+    if salon.es_admin:
         flash("No puedes registrar un hijo en un salón administrativo. Por favor selecciona otro salón.", "error")
         return redirect(url_for("salones"))
-    if salon.es_supervisor == 'True':
+    if salon.es_supervisor:
         flash("No puedes registrar un hijo en un salón administrativo. Por favor selecciona otro salón.", "error")
         return redirect(url_for("salones"))
     if request.method == 'POST':
@@ -91,9 +90,9 @@ def cambiar_responsable(salon_id):
             nuevo_encargado = request.form['nuevo_encargado']
             SalonCSV.update_encargado(salon_id, nuevo_encargado)
             flash("Responsable actualizado correctamente", "success")
-            if current_user.es_supervisor == 'True':
+            if current_user.es_supervisor:
                 return redirect(url_for("staff_supervisor_home"))
-            if current_user.es_supervisor == 'False':
+            if not current_user.es_supervisor:
                 return redirect(url_for("staff_home"))
         except Exception as e:
             flash("Error al actualizar el responsable. Intenta de nuevo", "error")
@@ -159,13 +158,13 @@ def staff_logIn():
     if form.validate_on_submit():
         salon = SalonCSV.filter_by_usuario(form.usuario.data)
         if salon and salon.check_password(form.contrasena.data):
-            if salon.es_admin == 'True' and salon.es_supervisor == 'False':
+            if salon.es_admin and not salon.es_supervisor:
                 login_user(salon, remember=True, duration=timedelta(hours=3))
                 return redirect(url_for("staff_admin_home"))
-            elif salon.es_supervisor == 'True' and salon.es_admin == 'False':
+            elif salon.es_supervisor and not salon.es_admin:
                 login_user(salon, remember=True, duration=timedelta(hours=3))
                 return redirect(url_for("staff_supervisor_home"))
-            elif salon.es_admin == 'False' and salon.es_supervisor == 'False':
+            elif not salon.es_admin and not salon.es_supervisor:
                 login_user(salon, remember=True, duration=timedelta(hours=3))
                 return redirect(url_for("staff_home"))
         flash("Usuario o contraseña incorrectos", "error")
@@ -225,36 +224,22 @@ def staff_admin_registro(salon_id):
 @app.route('/staff-admin/Registro/reporte/anio/<int:anio>/<int:salon_id>', methods=['GET'])
 def descargar_reporte_anio(anio, salon_id):
     try:
-        df = pd.read_csv(fr"DB\Registro-{anio}.csv")
-        df['fecha_registro'] = pd.to_datetime(df['fecha_registro'])
-        
-        # Filtrar por año y por el salon_id
-        df_filtrado = df[
-            (df['fecha_registro'].dt.year == anio) & 
-            (df['salon_id'] == salon_id)
-        ]
-        
-        df_filtrado = df_filtrado.copy()
-        df_filtrado['fecha_registro'] = df_filtrado['fecha_registro'].dt.strftime('%Y-%m-%d')
-        
-        # Para Excel usamos estrictamente BytesIO (no StringIO)
+        registros = RegistroCSV.get_registros_for_report(anio=anio, salon_id=salon_id)
+        df = pd.DataFrame(registros)
+        if not df.empty:
+            df['fecha_registro'] = pd.to_datetime(df['fecha_registro']).dt.strftime('%Y-%m-%d')
+
         buffer = io.BytesIO()
-        
-        # Guardamos en el buffer usando el motor openpyxl sin el índice de pandas
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-            df_filtrado.to_excel(writer, index=False, sheet_name='Registros Anuales')
-            
+            df.to_excel(writer, index=False, sheet_name='Registros Anuales')
         buffer.seek(0)
-        
-        # Retornamos modificando el mimetype al estándar de Excel (.xlsx)
+
         return send_file(
             buffer,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
             download_name=f'registro_salon_{salon_id}_anio_{anio}.xlsx'
         )
-    except FileNotFoundError:
-        return abort(404, description="El archivo de registros no existe.")
     except Exception as e:
         return abort(500, description=str(e))
 
@@ -265,33 +250,22 @@ def descargar_reporte_anio(anio, salon_id):
 @app.route('/staff-admin/Registro/reporte/mes/<int:anio>/<int:mes>/<int:salon_id>', methods=['GET'])
 def descargar_reporte_mes(anio, mes, salon_id):
     try:
-        df = pd.read_csv(fr"DB\Registro-{anio}.csv")
-        df['fecha_registro'] = pd.to_datetime(df['fecha_registro'])
-        
-        # Filtrar por año, mes y salón
-        df_filtrado = df[
-            (df['fecha_registro'].dt.year == anio) & 
-            (df['fecha_registro'].dt.month == mes) & 
-            (df['salon_id'] == salon_id)
-        ]
-        
-        df_filtrado = df_filtrado.copy()
-        df_filtrado['fecha_registro'] = df_filtrado['fecha_registro'].dt.strftime('%Y-%m-%d')
-        
+        registros = RegistroCSV.get_registros_for_report(anio=anio, mes=mes, salon_id=salon_id)
+        df = pd.DataFrame(registros)
+        if not df.empty:
+            df['fecha_registro'] = pd.to_datetime(df['fecha_registro']).dt.strftime('%Y-%m-%d')
+
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-            df_filtrado.to_excel(writer, index=False, sheet_name='Registros Mensuales')
-            
+            df.to_excel(writer, index=False, sheet_name='Registros Mensuales')
         buffer.seek(0)
-        
+
         return send_file(
             buffer,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
             download_name=f'registro_salon_{salon_id}_mes_{anio}_{mes:02d}.xlsx'
         )
-    except FileNotFoundError:
-        return abort(404, description="El archivo de registros no existe.")
     except Exception as e:
         return abort(500, description=str(e))
 
@@ -302,29 +276,23 @@ def descargar_reporte_mes(anio, mes, salon_id):
 @app.route('/staff-admin/Registro/reporte/dia/<int:anio>/<int:mes>/<int:dia>/<int:salon_id>', methods=['GET'])
 def descargar_reporte_dia(anio, mes, dia, salon_id):
     try:
-        df = pd.read_csv(fr"DB\Registro-{anio}.csv")
-        fecha_busqueda = f"{anio}-{mes:02d}-{dia:02d}"
-        
-        # Filtrar fecha exacta y salón
-        df_filtrado = df[
-            (df['fecha_registro'] == fecha_busqueda) & 
-            (df['salon_id'] == salon_id)
-        ]
-        
+        registros = RegistroCSV.get_registros_for_report(anio=anio, mes=mes, dia=dia, salon_id=salon_id)
+        df = pd.DataFrame(registros)
+        if not df.empty:
+            df['fecha_registro'] = pd.to_datetime(df['fecha_registro']).dt.strftime('%Y-%m-%d')
+
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-            df_filtrado.to_excel(writer, index=False, sheet_name='Registros Diarios')
-            
+            df.to_excel(writer, index=False, sheet_name='Registros Diarios')
         buffer.seek(0)
-        
+
+        fecha_busqueda = f"{anio}-{mes:02d}-{dia:02d}"
         return send_file(
             buffer,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
             download_name=f'registro_salon_{salon_id}_dia_{fecha_busqueda}.xlsx'
         )
-    except FileNotFoundError:
-        return abort(404, description="El archivo de registros no existe.")
     except Exception as e:
         return abort(500, description=str(e))
 
