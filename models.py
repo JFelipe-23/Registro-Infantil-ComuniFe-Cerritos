@@ -1,279 +1,223 @@
-from datetime import datetime
+from datetime import date
 import os
-import csv
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask
 from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ba2e18ce248bab7ce9425333f0420b57a5f07dfef342e1876d3013a524acf416f813af3071a65e3860475fe8e81c3a42c3c8fa65051de39aa2037fa695b305a7bc7044a415eb'
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-# Rutas de los archivos CSV que actuarán como tablas
-DATA_DIR = "DB"
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:Felipe1323@localhost:5432/registro')
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-CSV_SALON = str(os.path.join(DATA_DIR, "Salones.csv"))
-CSV_REGISTRO = str(os.path.join(DATA_DIR, f"Registro-{datetime.now().strftime('%Y')}.csv"))
+db = SQLAlchemy(app)
 
-# Inicializar archivos con sus cabeceras correspondientes
-def init_csv_files():
-    global CSV_REGISTRO
-    global CSV_SALON
-    
-    if not os.path.exists(CSV_SALON):
-        with open(CSV_SALON, mode='w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['id', 'nombre', 'usuario', 'contrasena_hash', 'encargado', 'es_admin', 'es_supervisor', 'id_supervisor'])
-            print("Se ha creado el archivo de salones")
-            print(f"{CSV_SALON}")
-            
-    if not os.path.exists(CSV_REGISTRO):
-        with open(CSV_REGISTRO, mode='w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['id', 'nombre_hijo', 'edad_hijo', 'nombre_acudiente', 'celular_acudiente', 'salon_id', 'nombre_staff', 'supervisor', 'nombre_salon', 'fecha_registro', 'entrada', 'salida'])
-            print("Se ha creado el archivo de registros")
-            print(f"{CSV_REGISTRO}")
-    else:
-        # Si ya existe, validamos si el año cambió (reutilizando tu lógica)
-        anio_actual = datetime.now().strftime('%Y')
-        if anio_actual == CSV_REGISTRO.split('-')[-1].split('.')[0]:
-            CSV_REGISTRO = os.path.join(DATA_DIR, f"Registro-{anio_actual}.csv")
-            print("Se ha verificado el archivo de registros existente")
-            print(f"{CSV_REGISTRO}")
-        else:
-            print("Ya existe un archivo de registros para otro periodo")
+# --- MODELOS SQL CON SQLALCHEMY ---
 
-init_csv_files()
+class Salon(db.Model, UserMixin):
+    __tablename__ = 'salones'
 
-# --- CLASES AUXILIARES COMPATIBLES CON FLASK-LOGIN ---
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    usuario = db.Column(db.String(100), nullable=False, unique=True)
+    contrasena_hash = db.Column(db.String(255), nullable=False)
+    encargado = db.Column(db.String(100), nullable=True)
+    es_admin = db.Column(db.Boolean, nullable=False, default=False)
+    es_supervisor = db.Column(db.Boolean, nullable=False, default=False)
+    id_supervisor = db.Column(db.Integer, db.ForeignKey('salones.id'), nullable=True)
 
-class SalonUser(UserMixin):
-    def __init__(self, id, nombre, usuario, contrasena_hash, encargado, es_admin, es_supervisor, id_supervisor):
-        self.id = str(id)
-        self.nombre = nombre
-        self.usuario = usuario
-        self.contrasena_hash = contrasena_hash
-        self.encargado = encargado
-        self.es_admin = es_admin
-        self.es_supervisor = es_supervisor
-        self.id_supervisor = id_supervisor
+    supervisees = db.relationship('Salon', remote_side=[id], backref='supervisor_room', lazy='select')
 
     def check_password(self, password):
         return check_password_hash(self.contrasena_hash, password)
-    
-    def set_password(self, contrasena_hash):
-        self.contrasena_hash = generate_password_hash(contrasena_hash)
 
-# --- CONTROLADORES DE ACCESO MANUAL (MOCK DE CONSULTAS) ---
+    def set_password(self, password):
+        self.contrasena_hash = generate_password_hash(password)
+
+class Registro(db.Model):
+    __tablename__ = 'registros'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_hijo = db.Column(db.String(100), nullable=False)
+    edad_hijo = db.Column(db.Integer, nullable=False)
+    nombre_acudiente = db.Column(db.String(100), nullable=False)
+    celular_acudiente = db.Column(db.String(50), nullable=False)
+    salon_id = db.Column(db.Integer, db.ForeignKey('salones.id'), nullable=False)
+    nombre_staff = db.Column(db.String(100), nullable=True)
+    supervisor = db.Column(db.String(100), nullable=True)
+    nombre_salon = db.Column(db.String(100), nullable=True)
+    fecha_registro = db.Column(db.Date, nullable=False, default=date.today)
+    entrada = db.Column(db.Boolean, nullable=False, default=True)
+    salida = db.Column(db.Boolean, nullable=False, default=False)
+
+    salon = db.relationship('Salon', backref='registros', lazy='joined')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nombre_hijo': self.nombre_hijo,
+            'edad_hijo': self.edad_hijo,
+            'nombre_acudiente': self.nombre_acudiente,
+            'celular_acudiente': self.celular_acudiente,
+            'salon_id': self.salon_id,
+            'nombre_staff': self.nombre_staff,
+            'supervisor': self.supervisor,
+            'nombre_salon': self.nombre_salon,
+            'fecha_registro': self.fecha_registro.isoformat() if self.fecha_registro else None,
+            'entrada': self.entrada,
+            'salida': self.salida
+        }
+
+# --- CONTROLADORES DE ACCESO SQL ---
 
 class SalonCSV:
     @staticmethod
     def get(id):
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['id'] == str(id):
-                    return SalonUser(row['id'], row['nombre'], row['usuario'], row['contrasena_hash'], row['encargado'], row['es_admin'], row['es_supervisor'], row['id_supervisor'])
-        return None
+        if id is None:
+            return None
+        return Salon.query.get(int(id))
 
     @staticmethod
     def filter_by_usuario(usuario):
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['usuario'] == usuario:
-                    return SalonUser(row['id'], row['nombre'], row['usuario'], row['contrasena_hash'], row['encargado'], row['es_admin'], row['es_supervisor'], row['id_supervisor'])
-        return None
-    
+        return Salon.query.filter_by(usuario=usuario).first()
+
     @staticmethod
     def get_all_admin():
-        salones = []
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['es_admin'] == 'True':
-                    salones.append(SalonUser(row['id'], row['nombre'], row['usuario'], row['contrasena_hash'], row['encargado'], row['es_admin'], row['es_supervisor'], row['id_supervisor']))
-        return salones
-    
+        return Salon.query.filter_by(es_admin=True).all()
+
     @staticmethod
     def get_all_salones():
-        salones = []
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['es_supervisor'] == 'False' and row['es_admin'] == 'False':
-                    salones.append(SalonUser(row['id'], row['nombre'], row['usuario'], row['contrasena_hash'], row['encargado'], row['es_admin'], row['es_supervisor'], row['id_supervisor']))
-        return salones
-    
+        return Salon.query.filter_by(es_supervisor=False, es_admin=False).all()
+
     @staticmethod
     def get_all_salones_by_supervisor(id_supervisor):
-        salones = []
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['es_supervisor'] == 'False' and row['es_admin'] == 'False' and row['id_supervisor'] == id_supervisor:
-                    salones.append(SalonUser(row['id'], row['nombre'], row['usuario'], row['contrasena_hash'], row['encargado'], row['es_admin'], row['es_supervisor'], row['id_supervisor']))
-        return salones
-    
+        return Salon.query.filter_by(es_supervisor=False, es_admin=False, id_supervisor=id_supervisor).all()
+
     @staticmethod
     def get_all_supervisores():
-        salones = []
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['es_supervisor'] == 'True':
-                    salones.append(SalonUser(row['id'], row['nombre'], row['usuario'], row['contrasena_hash'], row['encargado'], row['es_admin'], row['es_supervisor'], row['id_supervisor']))
-        return salones
+        return Salon.query.filter_by(es_supervisor=True).all()
 
     @staticmethod
     def get_all():
-        salones = []
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                salones.append(SalonUser(row['id'], row['nombre'], row['usuario'], row['contrasena_hash'], row['encargado'], row['es_admin'], row['es_supervisor'], row['id_supervisor']))
-        return salones
+        return Salon.query.all()
 
     @staticmethod
-    def add(nombre, usuario, contrasena, es_supervisor=False):
-        # Autoincrementar ID
-        rows = SalonCSV.get_all()
-        next_id = max([int(r.id) for r in rows], default=0) + 1
-
-        # Validar duplicados
+    def add(nombre, usuario, contrasena, es_supervisor=False, es_admin=False):
         if SalonCSV.filter_by_usuario(usuario):
             raise Exception("El usuario ya existe")
 
-        hash_p = generate_password_hash(contrasena)
-
-        with open(CSV_SALON, mode='a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                next_id, 
-                nombre, 
-                usuario, 
-                hash_p, 
-                None,              # Campo vacío (ej. token o descripción)
-                'False',         # ¿Es administrador global? False
-                es_supervisor,    # Aquí entra True o False dinámicamente
-                None
-            ])
+        salon = Salon(
+            nombre=nombre,
+            usuario=usuario,
+            contrasena_hash=generate_password_hash(contrasena),
+            encargado=None,
+            es_admin=bool(es_admin),
+            es_supervisor=bool(es_supervisor),
+            id_supervisor=None
+        )
+        db.session.add(salon)
+        db.session.commit()
+        return salon
 
     @staticmethod
     def delete(id_salon):
-        rows = []
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            rows = [row for row in reader if row['id'] != str(id_salon)]
-            
-        with open(CSV_SALON, mode='w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['id', 'nombre', 'usuario', 'contrasena_hash', 'encargado', 'es_admin', 'es_supervisor', 'id_supervisor'])
-            for r in rows:
-                writer.writerow([r['id'], r['nombre'], r['usuario'], r['contrasena_hash'], r['encargado'], r['es_admin'], r['es_supervisor'], r['id_supervisor']])
+        salon = Salon.query.get(id_salon)
+        if salon:
+            db.session.delete(salon)
+            db.session.commit()
 
     @staticmethod
     def update_password(id_salon, new_password):
-        rows = []
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            rows = [row for row in reader]
-
-        for row in rows:
-            if row['id'] == str(id_salon):
-                row['contrasena_hash'] = generate_password_hash(new_password)
-
-        with open(CSV_SALON, mode='w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['id', 'nombre', 'usuario', 'contrasena_hash', 'encargado', 'es_admin', 'es_supervisor', 'id_supervisor'])
-            for r in rows:
-                writer.writerow([r['id'], r['nombre'], r['usuario'], r['contrasena_hash'], r['encargado'], r['es_admin'], r['es_supervisor'], r['id_supervisor']])
+        salon = Salon.query.get(id_salon)
+        if not salon:
+            raise Exception('Salón no encontrado')
+        salon.contrasena_hash = generate_password_hash(new_password)
+        db.session.commit()
 
     @staticmethod
     def update_encargado(id_salon, nuevo_encargado):
-        rows = []
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            rows = [row for row in reader]
-
-        for row in rows:
-            if row['id'] == str(id_salon):
-                row['encargado'] = nuevo_encargado
-
-        with open(CSV_SALON, mode='w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['id', 'nombre', 'usuario', 'contrasena_hash', 'encargado', 'es_admin', 'es_supervisor', 'id_supervisor'])
-            for r in rows:
-                writer.writerow([r['id'], r['nombre'], r['usuario'], r['contrasena_hash'], r['encargado'], r['es_admin'], r['es_supervisor'], r['id_supervisor']])
+        salon = Salon.query.get(id_salon)
+        if not salon:
+            raise Exception('Salón no encontrado')
+        salon.encargado = nuevo_encargado
+        db.session.commit()
 
     @staticmethod
     def update_supervisor(id_salon, id_supervisor):
-        rows = []
-        with open(CSV_SALON, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            rows = [row for row in reader]
+        salon = Salon.query.get(id_salon)
+        if not salon:
+            raise Exception('Salón no encontrado')
+        salon.id_supervisor = id_supervisor
+        db.session.commit()
 
-        for row in rows:
-            if row['id'] == str(id_salon):
-                row['id_supervisor'] = id_supervisor
-
-        with open(CSV_SALON, mode='w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['id', 'nombre', 'usuario', 'contrasena_hash', 'encargado', 'es_admin', 'es_supervisor', 'id_supervisor'])
-            for r in rows:
-                writer.writerow([r['id'], r['nombre'], r['usuario'], r['contrasena_hash'], r['encargado'], r['es_admin'], r['es_supervisor'], r['id_supervisor']])
+SalonUser = Salon
 
 class RegistroCSV:
     @staticmethod
     def add(nombre_hijo, edad_hijo, nombre_acudiente, celular_acudiente, salon_id):
-        # Autoincrementar ID
-        with open(CSV_REGISTRO, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
-            next_id = max([int(r['id']) for r in rows], default=0) + 1
+        salon = SalonCSV.get(salon_id)
+        if not salon:
+            raise Exception('Salón no encontrado')
 
-        with open(CSV_REGISTRO, mode='a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            salon = SalonCSV.get(salon_id)
-            nombre_staff = salon.encargado if salon.encargado != '' else 'Desconocido'
-            nombre_salon = salon.nombre if salon else 'Salón no encontrado'
-            supervisor = SalonCSV.get(salon.id_supervisor).encargado
-            entrada = True
-            salida = False
-            writer.writerow([next_id, nombre_hijo, edad_hijo, nombre_acudiente, celular_acudiente, salon_id, nombre_staff, supervisor, nombre_salon, datetime.now().strftime("%Y-%m-%d"), entrada, salida])
+        nombre_staff = salon.encargado or 'Desconocido'
+        nombre_salon = salon.nombre
+        supervisor_text = None
+        if salon.id_supervisor:
+            supervisor = SalonCSV.get(salon.id_supervisor)
+            supervisor_text = supervisor.encargado if supervisor else None
 
-        return next_id
-    #Obtener registros por salon_id de la fecha actual
+        registro = Registro(
+            nombre_hijo=nombre_hijo,
+            edad_hijo=edad_hijo,
+            nombre_acudiente=nombre_acudiente,
+            celular_acudiente=celular_acudiente,
+            salon_id=salon.id,
+            nombre_staff=nombre_staff,
+            supervisor=supervisor_text,
+            nombre_salon=nombre_salon,
+            fecha_registro=date.today(),
+            entrada=True,
+            salida=False
+        )
+        db.session.add(registro)
+        db.session.commit()
+        return registro.id
+
     @staticmethod
     def get_registros_by_salon_id(salon_id):
-        registros = []
-        with open(CSV_REGISTRO, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row['salon_id'] == str(salon_id) and row['fecha_registro'] == datetime.now().strftime("%Y-%m-%d") and row['salida'] == 'False':
-                    registros.append(row)
-        # Ordenar alfabéticamente por nombre del hijo
-        registros.sort(key=lambda x: x['nombre_hijo'].lower())
-        return registros
-    
+        today = date.today()
+        registros = Registro.query.filter_by(salon_id=salon_id, salida=False).filter(Registro.fecha_registro == today).order_by(Registro.nombre_hijo).all()
+        return [registro.to_dict() for registro in registros]
+
     @staticmethod
     def marcar_salida(registro_id):
-        rows = []
-        with open(CSV_REGISTRO, mode='r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            rows = [row for row in reader]
+        registro = Registro.query.get(registro_id)
+        if not registro:
+            raise Exception('Registro no encontrado')
 
-        for row in rows:
-            if row['id'] == str(registro_id):
-                row['salida'] = True
-                salon = SalonCSV.get(row['salon_id'])
-                row['nombre_staff'] = salon.encargado if salon.encargado != '' else 'Desconocido'
+        registro.salida = True
+        salon = SalonCSV.get(registro.salon_id)
+        registro.nombre_staff = salon.encargado or 'Desconocido'
+        db.session.commit()
 
-        with open(CSV_REGISTRO, mode='w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['id', 'nombre_hijo', 'edad_hijo', 'nombre_acudiente', 'celular_acudiente', 'salon_id', 'nombre_staff', 'encargado', 'nombre_salon', 'fecha_registro', 'entrada', 'salida'])
-            for r in rows:
-                writer.writerow([r['id'], r['nombre_hijo'], r['edad_hijo'], r['nombre_acudiente'], r['celular_acudiente'], r['salon_id'], r['nombre_staff'],r['encargado'], r['nombre_salon'], r['fecha_registro'], r['entrada'], r['salida']])
+    @staticmethod
+    def get_registros_for_report(anio, mes=None, dia=None, salon_id=None):
+        from sqlalchemy import extract
+
+        query = Registro.query
+        if salon_id is not None:
+            query = query.filter_by(salon_id=salon_id)
+
+        if anio is not None:
+            query = query.filter(extract('year', Registro.fecha_registro) == anio)
+        if mes is not None:
+            query = query.filter(extract('month', Registro.fecha_registro) == mes)
+        if dia is not None:
+            query = query.filter(extract('day', Registro.fecha_registro) == dia)
+
+        registros = query.order_by(Registro.fecha_registro, Registro.nombre_hijo).all()
+        return [registro.to_dict() for registro in registros]

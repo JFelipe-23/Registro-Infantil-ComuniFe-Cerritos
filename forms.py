@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, IntegerField, SelectField, SubmitField, DateField, BooleanField
 from wtforms.validators import DataRequired, EqualTo, ValidationError, Length, NumberRange
-# Importamos los controladores analizados del nuevo models.py basado en CSV
+# Importamos los controladores analizados del nuevo models.py basado en SQLAlchemy
 from models import SalonCSV, RegistroCSV
 
 class RegistroForm(FlaskForm):
