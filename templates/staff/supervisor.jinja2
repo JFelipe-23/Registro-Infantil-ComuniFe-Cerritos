@@ -51,6 +51,13 @@
         display: flex; align-items: center;
     }
     .btn-delete-room:hover { background: #fff; color: #000; border-color: #fff; }
+    .btn-view-room {
+        padding: 10px 20px; background: #1a1a1a; color: #fff;
+        border: 1px solid #333; border-radius: 12px; font-weight: bold;
+        text-decoration: none; font-size: 0.9rem; transition: 0.3s;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .btn-view-room:hover { background: #fff; color: #000; border-color: #fff; }
 
     /* Botones Inferiores de Configuración */
     .admin-footer-actions { width: 100%; margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
@@ -86,6 +93,9 @@
         <div class="room-icon-bg">👤</div>
         <h3 class="room-name">{{ supervisor.nombre }}</h3>
         <p>Profesor: {{supervisor.encargado}}</p>
+    </div>
+    <div class="room-actions">
+        <a href="{{ url_for('staff_supervisor_ver_salon', salon_id=supervisor.id) }}" class="btn-view-room">Ver Salon</a>
     </div>
 </div>
 {% endfor %}
