@@ -47,15 +47,35 @@
     .room-meta { font-size: 0.9rem; color: #888; margin: 4px 0 0 0; }
     .room-meta span { color: #555; }
 
-    /* Distribución de botones horizontales en rejilla */
-    .room-actions { display: flex; gap: 10px; width: 100%; }
-    .btn-delete-room {
-        flex: 1; padding: 10px 15px; background: #1c1c1e; color: #fff;
+    /* Distribución estable de botones en la tarjeta */
+    .room-actions {
+        display: grid;
+        grid-template-columns: 1.2fr 1.1fr 1.1fr 0.9fr;
+        gap: 10px;
+        width: 100%;
+    }
+    .btn-delete-room,
+    .btn-view-room {
+        width: 100%;
+        min-height: 48px;
+        padding: 10px 12px;
+        background: #1c1c1e; color: #fff;
         border: 1px solid #2c2c2e; border-radius: 12px; font-weight: bold;
         text-decoration: none; font-size: 0.9rem; transition: 0.3s;
         display: flex; align-items: center; justify-content: center; gap: 8px;
     }
     .btn-delete-room:hover { background: #2c2c2e; border-color: #444; }
+    .btn-view-room {
+        background: #2a2a2d;
+        border-color: #3a3a3d;
+    }
+    .btn-view-room:hover { background: #f2f2f2; color: #000; border-color: #fff; }
+
+    @media (max-width: 520px) {
+        .room-actions {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
 
     /* Botones Inferiores de Configuración */
     .admin-footer-actions { width: 100%; margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
@@ -100,6 +120,9 @@
         </div>
     </div>
     <div class="room-actions">
+        <a href="{{ url_for('staff_ver_salon', salon_id=salon.id) }}" class="btn-view-room">
+            <span>👁️</span> Ver Salon
+        </a>
         <a href="/staff-admin/{{ salon.id }}/supervisor" class="btn-delete-room">
             <span>➕</span> Supervisor
         </a>

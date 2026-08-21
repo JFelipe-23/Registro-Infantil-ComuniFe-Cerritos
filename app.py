@@ -152,6 +152,36 @@ def staff_supervisor_home():
     responsable = SalonCSV.get(id_salon).encargado if SalonCSV.get(id_salon) else "Desconocido"
     return render_template("staff/supervisor.jinja2", salon_id=id_salon, responsable=responsable, supervisores=SalonCSV.get_all_salones_by_supervisor(id_salon))
 
+@app.route("/staff/salon/<int:salon_id>", methods=["GET"])
+def staff_ver_salon(salon_id):
+    if not current_user.is_authenticated:
+        return redirect(url_for("staff_logIn"))
+
+    salon = SalonCSV.get(salon_id)
+    if not salon:
+        flash("Salón no encontrado.", "error")
+        return redirect(url_for("staff_home") if not current_user.es_admin and not current_user.es_supervisor else url_for("staff_admin_home" if current_user.es_admin else "staff_supervisor_home"))
+
+    if current_user.es_supervisor and salon.id_supervisor != current_user.id:
+        flash("No tienes acceso a este salón.", "error")
+        return redirect(url_for("staff_supervisor_home"))
+
+    if current_user.es_admin:
+        pass
+    elif current_user.es_supervisor:
+        pass
+    elif current_user.id != salon_id:
+        flash("No tienes acceso a este salón.", "error")
+        return redirect(url_for("staff_home"))
+
+    responsable = salon.encargado if salon else "Desconocido"
+    estudiantes = RegistroCSV.get_registros_by_salon_id(salon_id)
+    return render_template("staff/home.jinja2", estudiantes=estudiantes, nombre=salon.nombre, salon_id=salon_id, responsable=responsable)
+
+@app.route("/staff-supervisor/salon/<int:salon_id>", methods=["GET"])
+def staff_supervisor_ver_salon(salon_id):
+    return staff_ver_salon(salon_id)
+
 @app.route("/staff/logIn", methods=["GET", "POST"])
 def staff_logIn():
     form = SalonLoginForm()
