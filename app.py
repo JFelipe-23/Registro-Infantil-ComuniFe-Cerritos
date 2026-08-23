@@ -2,7 +2,7 @@ from flask import abort, render_template, redirect, url_for, request, flash, sen
 from flask_login import LoginManager, current_user, login_user, logout_user
 from werkzeug.security import generate_password_hash
 from datetime import timedelta
-from models import RegistroCSV, app, SalonCSV, SalonUser
+from models import RegistroCSV, app, db, SalonCSV, SalonUser
 from forms import SalonLoginForm, SalonForm, RegistroForm, CambiarResponsableForm, CambiarContraseñaForm, FechaForm, AñoForm, MesForm
 
 import io
@@ -76,6 +76,10 @@ def scarapela():
 @app.route("/staff/<int:salon_id>/salida/<int:registro_id>", methods=["POST", "GET"])
 def marcar_salida(salon_id, registro_id):
     try:
+        if current_user.es_supervisor == True:
+            RegistroCSV.marcar_salida(registro_id)
+            flash("Salida marcada correctamente", "success")
+            return redirect(url_for("staff_supervisor_home", salon_id=salon_id))
         RegistroCSV.marcar_salida(registro_id)
         flash("Salida marcada correctamente", "success")
     except Exception as e:
@@ -225,8 +229,9 @@ def add_staff():
 def eliminar_salon(salon_id):
     try:
         SalonCSV.delete(salon_id)
-    except:
-        flash("Error al eliminar el hijo. Intenta de nuevo", "error")
+    except Exception as error:
+        db.session.rollback()
+        flash(str(error), "error")
     return render_template("staff/admin.jinja2", salones=SalonCSV.get_all_salones(), supervisores=SalonCSV.get_all_supervisores())
 
 @app.route("/staff/Registro", methods=["GET", "POST"])

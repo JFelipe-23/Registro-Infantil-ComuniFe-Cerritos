@@ -10,7 +10,7 @@ app.config['SECRET_KEY'] = 'ba2e18ce248bab7ce9425333f0420b57a5f07dfef342e1876d30
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://registros_posgres_comunife_user:0s6j5qZeREMrvUHPsKEpYJNdgHHQmUqx@dpg-d9pnts53erlc7398apl0-a/registros_posgres_comunife')
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://registros_posgres_comunife_user:0s6j5qZeREMrvUHPsKEpYJNdgHHQmUqx@dpg-d9pnts53erlc7398apl0-a.virginia-postgres.render.com/registros_posgres_comunife')
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -126,9 +126,12 @@ class SalonCSV:
     @staticmethod
     def delete(id_salon):
         salon = Salon.query.get(id_salon)
-        if salon:
-            db.session.delete(salon)
-            db.session.commit()
+        if not salon:
+            raise Exception('Salón no encontrado')
+        if Registro.query.filter_by(salon_id=salon.id).first():
+            raise Exception('No se puede eliminar un salón que tiene registros')
+        db.session.delete(salon)
+        db.session.commit()
 
     @staticmethod
     def update_password(id_salon, new_password):
