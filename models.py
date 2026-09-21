@@ -10,7 +10,7 @@ app.config['SECRET_KEY'] = 'ba2e18ce248bab7ce9425333f0420b57a5f07dfef342e1876d30
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://registros_posgres_comunife_user:0s6j5qZeREMrvUHPsKEpYJNdgHHQmUqx@dpg-d9pnts53erlc7398apl0-a.virginia-postgres.render.com/registros_posgres_comunife')
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://neondb_owner:npg_fRPFDKrC15uw@ep-dark-heart-awmbb02x-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
